@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.6 — 2026-10-16
+
+- Restore mixed-script personality with familiar Chinese words and sparse Han accents in other sentences; retain kana-only display modes and unchanged katakana speech readings.
+- Rename the mixed style 「漢字混搭」 so the choice is clear.
+- Add a 44px hero-cat swap button at the mascot's bottom-right, save the selection locally, and retain both expression and speaking states when switching.
+- Keep custom mappings, broad pronunciation coverage, reverse conversion, language-associated cats and the user's latest uploaded artwork intact.
+
 ## v1.5 — 2026-10-16
 
 - Replace the limited forward character lookup with a bundled pinyin-pro dictionary and explicit kana spellings for all 416 vendor syllables tested.

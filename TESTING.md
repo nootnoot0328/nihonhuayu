@@ -1,4 +1,4 @@
-# v1.5 validation — 2026-10-16
+# v1.6 validation — 2026-10-16
 
 Automated `tests/browser.cjs` passed in headless Microsoft Edge and Playwright WebKit 26.5 on Windows.
 
@@ -7,6 +7,9 @@ Automated `tests/browser.cjs` passed in headless Microsoft Edge and Playwright W
 | Area | Result |
 | --- | --- |
 | Chinese forward conversion, mixed/hiragana/katakana, reverse history restoration and ambiguity warning | Pass |
+| Mixed display retains familiar Han words and sparse accents in unfamiliar sentences; speech is identical across all three styles | Pass |
+| Hero selector switches Cat 1/Cat 2, persists across reload and preserves text/reading/playback and current talking frame | Pass |
+| Hero swap control is >=44×44px and sits at the large cat's bottom-right at all four tested widths | Pass |
 | Pinned vendor SHA-256 checks, no external browser conversion requests and visible dictionary-load failure state | Pass |
 | Contextual pinyin for 銀行行長重慶音樂快樂 in both scripts; previously unsupported novel sentences convert completely | Pass with real dictionaries |
 | Funny Chinese reverse mode: ありがとう → 阿哩嘎多, Chinese speech payload, Japanese examples and separate legacy restoration mode | Pass |

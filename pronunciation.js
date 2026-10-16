@@ -59,10 +59,38 @@
   }
   return {text,reading,speech,unknown,degraded:result.degraded};
  }
+ // Display accents only. The pronunciation always comes from the source tokens.
+ const mixedWords=["珍珠奶茶","圖書館","图书馆","電腦","电脑","手機","手机","音樂","音乐","電影","电影","學校","学校","學生","学生","老師","老师","先生","朋友","家人","生日","週末","周末","今天","明天","昨天","晚上","早上","早餐","午餐","晚餐","奶茶","咖啡","蛋糕","布丁","拉麵","拉面","鳳梨","凤梨","水果","蘋果","苹果","西瓜","牛奶","餅乾","饼干","餃子","饺子","火鍋","火锅","臺灣","台灣","台湾","日本","東京","东京","大阪","中文","日文","漢字","汉字","天氣","天气","太陽","太阳","月亮","星星","花火","櫻花","樱花","可愛","可爱","開心","开心","快樂","快乐","工作","旅行","睡覺","睡觉","貓咪","猫咪","貓","猫","狗"].sort((a,b)=>b.length-a.length);
+ function mixedAccents(input,tokens,customPairs){
+  const accents=new Map(),protectedIndices=new Set();
+  for(const [key] of customPairs){
+   for(let at=input.indexOf(key);at!==-1;at=input.indexOf(key,at+1))for(let i=at;i<at+key.length;i++)protectedIndices.add(i);
+  }
+  let at=0;const positions=tokens.map(t=>{const p={...t,at};at+=t.origin.length;return p});
+  const byIndex=new Map(positions.map(t=>[t.at,t]));
+  for(let i=0;i<input.length;){
+   const word=mixedWords.find(word=>input.startsWith(word,i)&&[...word].every((c,n)=>byIndex.get(i+n)?.kana&&!protectedIndices.has(i+n)));
+   if(word){for(let n=0;n<word.length;n++)accents.set(i+n,input[i+n]);i+=word.length}
+   else i+=String.fromCodePoint(input.codePointAt(i)).length;
+  }
+  // Give unfamiliar sentences the same mixed-script character. Retain about
+  // one content character in four; avoid decorating particles and pronouns.
+  const particles=new Set([..."我你他她它們们的得地是了嗎吗呢啊嘛不在和與与也就都又還还這这个那個"]);
+  for(let i=0;i<positions.length;){
+   if(!han.test(positions[i].origin)){i++;continue}
+   let end=i;while(end<positions.length&&han.test(positions[end].origin))end++;
+   const run=positions.slice(i,end),eligible=run.filter(t=>t.kana&&!protectedIndices.has(t.at)&&!particles.has(t.origin));
+   for(let n=2;n<eligible.length;n+=4)if(!accents.has(eligible[n].at))accents.set(eligible[n].at,eligible[n].origin);
+   if(run.length>=3&&!run.some(t=>accents.has(t.at))&&eligible.length)accents.set(eligible.at(-1).at,eligible.at(-1).origin);
+   i=end;
+  }
+  return accents;
+ }
  function forward(input,mode,examples={},custom={}){
   const customPairs=Object.entries(custom).sort((a,b)=>b[0].length-a[0].length);
   const builtins=Object.entries(examples).sort((a,b)=>b[0].length-a[0].length);
   const readings=mandarinTokens(input),byIndex=new Map();
+  const accents=mode==="mixed"?mixedAccents(input,readings.tokens,customPairs):new Map();
   let offset=0;for(const token of readings.tokens){byIndex.set(offset,token);offset+=token.origin.length}
   let text="",reading="",speech="",unknown=0,degraded=readings.degraded;
   for(let i=0;i<input.length;){
@@ -75,7 +103,7 @@
    }
    const token=byIndex.get(i),c=String.fromCodePoint(input.codePointAt(i));
    const value=token?.kana||punct(c);
-   text+=mode==="kata"?kata(value):value;
+   text+=mode==="mixed"?(accents.get(i)??value):mode==="kata"?kata(value):value;
    if(han.test(c)&&!token?.kana){unknown++;reading+="〔"+c+"〕";speech+=" ";}else{reading+=kata(value);speech+=kata(value);}
    i+=c.length;
   }

@@ -60,10 +60,19 @@ async function run(browser){
  await fill('ぁ');assert.match(await page.locator('#note').textContent(),/不保證|多種/);
  await forwardExample('你在幹嘛？');
  await page.locator('[data-mode="mixed"]').click();assert.equal(await output(),'にざいがんま？');
- await fill('圖書館裡的鬱金香綻放了');assert.doesNotMatch(await output(),/\p{Script=Han}/u);assert.doesNotMatch(await page.locator('#note').textContent(),/未收錄/);
+ await fill('圖書館裡的鬱金香綻放了');assert.match(await output(),/圖書館/);assert.doesNotMatch(await page.locator('#note').textContent(),/未收錄/);
  assert.equal(await page.locator('#source').inputValue(),'圖書館裡的鬱金香綻放了');
  await page.locator('#speak').click();assert.match(await page.evaluate(()=>mock.spoken.at(-1).text),/^[ァ-ヶー]+$/);await page.locator('#speak').click();
  await page.locator('#swap').click();await page.locator('[data-reverse-mode="restore"]').click();assert.equal(await output(),'圖書館裡的鬱金香綻放了');await page.locator('#swap').click();
+ // The hero switch changes its own artwork, preserving conversion and speech.
+ const beforeMascot=await output(),readingBefore=await page.locator('#kanaReading').textContent();
+ await page.locator('#swapMascot').click();assert.equal(await page.locator('#heroCat').getAttribute('data-cat'),'2');
+ assert.match(await page.locator('#heroCat img').getAttribute('src'),/Cat%202\.png/);
+ assert.equal(await output(),beforeMascot);assert.equal(await page.locator('#kanaReading').textContent(),readingBefore);
+ await page.reload();assert.equal(await page.locator('#heroCat').getAttribute('data-cat'),'2');
+ await fill('圖書館裡的鬱金香綻放了');await page.locator('#speak').click();assert.match(await page.locator('#heroCat img').getAttribute('src'),/Cat%202%20-2/);
+ await page.locator('#swapMascot').click();assert.equal(await page.locator('#speak').getAttribute('aria-pressed'),'true');assert.match(await page.locator('#heroCat img').getAttribute('src'),/Cat%201%20-2/);
+ await page.locator('#speak').click();
  await page.locator('#customDetails').evaluate(el=>{el.open=true});
  await page.locator('#mappingChinese').fill('奶茶');await page.locator('#mappingJapanese').fill('ないちゃ');
  await page.locator('#mappingForm button').click();await fill('奶茶，謝謝！');assert.equal(await output(),'ないちゃ、しぇしぇ！');
@@ -139,6 +148,8 @@ async function run(browser){
   for(const [a,b] of [['#inputCat','.input-bubble'],['.result','#outputCat']]){
    const x=await page.locator(a).boundingBox(),y=await page.locator(b).boundingBox();assert(x.x+x.width<=y.x+1,`${a} overlaps ${b} at ${width}`);
   }
+  const hero=await page.locator('#heroCat').boundingBox(),toggle=await page.locator('#swapMascot').boundingBox();
+  assert(toggle.width>=44&&toggle.height>=44);assert(toggle.x>hero.x+hero.width/2&&toggle.y>hero.y+hero.height/2);
   if(width===390||width===1280)await page.screenshot({path:path.join(process.env.TEMP||root,`nihonhuayu-${width}.png`),fullPage:true});
   await page.locator('#swap').click();await page.locator('[data-reverse-mode="sound"]').click();
   await page.locator('[data-japanese-example="ありがとう！"]').click();assert.equal(await output(),'阿哩嘎多！');

@@ -7,9 +7,9 @@
 <link rel="stylesheet" href="./style.css"><script src="./vendor/opencc-t2cn-1.4.2.js" defer></script><script src="./vendor/pinyin-pro-3.29.5.js" defer></script><script src="./pronunciation.js" defer></script><script src="./app.js" defer></script>
 <title>日本華語 · Nihon Huayu</title></head>
 <body><div class="shell">
-<header class="top"><div class="logo"><button class="cat-button brand-cat" type="button" data-cat="1" aria-label="逗逗貓咪一號"><img class="logo-image" src="./Cat%201.png" alt="" width="43" height="43" draggable="false"></button><span>日本華語<small>NIHON HUAYU</small></span></div><span class="version">✿ v1.5</span></header>
+<header class="top"><div class="logo"><button class="cat-button brand-cat" type="button" data-cat="1" aria-label="逗逗貓咪一號"><img class="logo-image" src="./Cat%201.png" alt="" width="43" height="43" draggable="false"></button><span>日本華語<small>NIHON HUAYU</small></span></div><span class="version">✿ v1.6</span></header>
 <main>
-<div class="hero"><p class="eyebrow">中文聊天 · 日文靈魂</p><div class="hero-art"><button class="cat-button hero-cat" type="button" data-cat="1" aria-label="逗逗貓咪一號"><img class="mascot-illustration" src="./Cat%201.png" alt="" width="138" height="138" draggable="false"></button><div class="bubble">にほんご…かな？ ✨</div></div><h1>講中文，<em>裝日文。</em></h1><p class="subtitle">把普通聊天變成可愛又荒謬的假日文 ♡</p></div>
+<div class="hero"><p class="eyebrow">中文聊天 · 日文靈魂</p><div class="hero-art"><div class="hero-mascot"><button id="heroCat" class="cat-button hero-cat" type="button" data-cat="1" aria-label="逗逗貓咪一號"><img class="mascot-illustration" src="./Cat%201.png" alt="" width="138" height="138" draggable="false"></button><button id="swapMascot" class="mascot-swap" type="button" aria-label="切換主角為貓咪二號" title="換一隻貓咪" aria-controls="heroCat">⇄</button></div><div class="bubble">にほんご…かな？ ✨</div></div><h1>講中文，<em>裝日文。</em></h1><p class="subtitle">把普通聊天變成可愛又荒謬的假日文 ♡</p></div>
 <section class="workspace" aria-label="文字轉換">
 <div class="direction"><button class="lang active" id="fromLang" type="button">中文</button><button class="swap" id="swap" aria-label="切換轉換方向" title="切換方向">⇄</button><button class="lang" id="toLang" type="button">假日文</button></div>
 <div id="reverseModes" class="reverse-modes" role="group" aria-label="日文轉中文方式" hidden><button type="button" data-reverse-mode="sound" class="selected" aria-pressed="true">🍙 諧音中文</button><button type="button" data-reverse-mode="restore" aria-pressed="false">↶ 還原原句</button></div>
@@ -20,7 +20,7 @@
 <textarea id="source" maxlength="280" placeholder="例如：什麼樣的便當？" rows="4" spellcheck="false"></textarea>
 <div class="controls"><span id="counter">0 / 280</span><span id="hint">越短越有梗！</span></div>
 </div></div>
-<div class="modebar"><span>STYLE</span><div class="modes" role="group" aria-label="轉換風格"><button data-mode="mixed" class="selected">🍡 混搭</button><button data-mode="hira">あ 平假名</button><button data-mode="kata">ア 片假名</button></div></div>
+<div class="modebar"><span>STYLE</span><div class="modes" role="group" aria-label="轉換風格"><button data-mode="mixed" class="selected">🍡 漢字混搭</button><button data-mode="hira">あ 平假名</button><button data-mode="kata">ア 片假名</button></div></div>
 <p class="livehint">⚡ 即時轉換 · 輸入時自動更新</p>
 <div class="chat-message output-message">
 <button id="outputCat" class="cat-button chat-cat" type="button" data-cat="2" aria-label="逗逗說假日文的貓咪"><img src="./Cat%202.png" alt="" width="60" height="60" draggable="false"></button>

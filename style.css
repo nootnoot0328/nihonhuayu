@@ -121,3 +121,9 @@ input,textarea,select,[contenteditable]:not([contenteditable="false"]){font-size
 .reverse-modes button{flex:1;border:1px solid #efdfdf;border-radius:12px;background:white;color:#98858b;font-family:inherit;font-size:12px;font-weight:700;padding:9px 4px}
 .reverse-modes button.selected{border-color:#ed9caf;background:#fff0f4;color:#b95777}
 .reverse-modes[hidden],.chips[hidden]{display:none}
+
+/* v1.6: a separate, thumb-sized mascot selector beside the hero cat. */
+.hero-mascot{position:relative;width:138px;height:138px}
+.mascot-swap{position:absolute;right:-10px;bottom:-2px;display:grid;place-items:center;width:44px;height:44px;border:2px solid #efc7d3;border-radius:50%;background:#fffafc;color:#ce6a8c;font-size:24px;line-height:1;cursor:pointer;box-shadow:0 3px 0 #f4d9e2;z-index:3}
+.mascot-swap:active{transform:translateY(2px)}
+@media(max-width:380px){.hero-mascot{width:126px;height:126px}}

@@ -1,4 +1,4 @@
-# 日本華語 · Nihon Huayu 🍡 v1.5
+# 日本華語 · Nihon Huayu 🍡 v1.6
 
 A playful Mandarin → fake-Japanese chat converter, inspired by messages like **什麼樣的便當？ → しぇんまやんで弁当？**.
 
@@ -16,6 +16,7 @@ A playful Mandarin → fake-Japanese chat converter, inspired by messages like *
 - Mobile-first, pastel UI featuring the two original transparent cat PNGs
 - Speech-bubble input/output: Cat 1 speaks Chinese, Cat 2 speaks pseudo-Japanese; switching direction swaps their positions
 - Press-and-release cat expressions and talking animation using the uploaded alternate PNGs
+- Hero cat selector at the bottom-right of the large mascot, with the choice saved locally
 - Separate katakana speech reading, with small reading text below the main Japanese result
 - Broad local Mandarin pronunciation dictionary, contextual polyphones and a complete mapping for its 416 tone-free syllables
 - Zero account requirements; conversions run on-device; no analytics, backend or API keys
@@ -104,3 +105,9 @@ Built-in jokes remain available. Personal mappings take precedence even inside a
 Japanese → Chinese now defaults to 「諧音中文」: kana morae become Mandarin-readable Chinese homophones. Examples include `ありがとう！ → 阿哩嘎多！` and `こんにちは → 空尼七哇`. The Chinese voice (`zh-TW`) reads those characters, intentionally sounding like funny Japanese. Hiragana, katakana, half-width katakana, small-kana combinations, dakuten, long vowels and short consonant pauses are handled. A starter list expands Japanese words such as 日本語, 学校, 好き and 弁当 to kana; unknown Japanese kanji/symbols are bracketed and require kana input. The old 「還原原句」 choice remains separate, including existing localStorage history, custom mappings and ambiguity warnings. The two modes deliberately produce different results.
 
 Both libraries are self-hosted, pinned and shipped with their licenses. No CDN request, cloud translation, account, API key or build step is required. See [vendor/README.md](./vendor/README.md) for source and integrity details.
+
+## v1.6 mixed-script personality and mascot choice
+
+「漢字混搭」 keeps familiar Chinese words such as 圖書館, 音樂 and 奶茶 visible, alongside kana. Other sentences receive sparse Han-character accents, avoiding particles and pronouns where possible. These are display choices only: the complete source pronunciation still drives the katakana reading and native speech. Hiragana/katakana modes remain kana-only for recognized characters; custom mappings keep priority and their mixed-script spelling remains untouched. Built-in phrases and saved reverse restoration continue to work.
+
+The small ⇄ button at the bottom-right of the large hero cat switches between Cat 1 and Cat 2 without changing conversion direction, text, or speech playback. The choice uses the new `nihonhuayu-hero-cat-v1` localStorage key, leaving existing mapping/history keys intact. Both selected cats support held expressions and talking frames. The language-associated conversation cats retain their roles, and the header branding remains Cat 1.

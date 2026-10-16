@@ -107,6 +107,9 @@ function convert(silent=false){
 let toastTimer;
 const catArt={"1":["./Cat%201.png","./Cat%201%20-2.png"],"2":["./Cat%202.png","./Cat%202%20-2.png"]};
 const catButtons=[...document.querySelectorAll(".cat-button")];
+const MASCOT_KEY="nihonhuayu-hero-cat-v1";
+let heroChoice="1";
+try{if(localStorage.getItem(MASCOT_KEY)==="2")heroChoice="2"}catch{}
 // Preload and decode alternatives so expression changes do not start a fetch.
 const catPreloads=Object.values(catArt).flat().map(src=>{const img=new Image();img.src=src;img.decode().catch(()=>{});return img});
 const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -122,6 +125,17 @@ function setCat(button,cat){
  button.setAttribute("aria-label","逗逗說"+(cat==="1"?"中文":"假日文")+"的貓咪");
  renderCat(button);
 }
+function selectHeroCat(cat){
+ heroChoice=cat;
+ $("heroCat").dataset.pressed="false";
+ setCat($("heroCat"),cat);
+ $("heroCat").setAttribute("aria-label","逗逗貓咪"+(cat==="1"?"一號":"二號"));
+ $("swapMascot").setAttribute("aria-label","切換主角為貓咪"+(cat==="1"?"二號":"一號"));
+}
+$("swapMascot").addEventListener("click",()=>{
+ selectHeroCat(heroChoice==="1"?"2":"1");
+ try{localStorage.setItem(MASCOT_KEY,heroChoice)}catch{}
+});
 function stopTalking(){
  clearInterval(talkingTimer);talking=false;talkingFrame=false;catButtons.forEach(renderCat);
 }
@@ -253,5 +267,6 @@ $("resetMappings").addEventListener("click",()=>{
 });
 $("fromLang").addEventListener("click",()=>{if(reverse)$("swap").click()});
 $("toLang").addEventListener("click",()=>{if(!reverse)$("swap").click()});
+selectHeroCat(heroChoice);
 renderMappings();
 redraw();

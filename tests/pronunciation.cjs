@@ -31,6 +31,14 @@ assert.equal(mixed.text,'しぇんまやんで弁当？');assert.equal(mixed.spe
 assert.equal(engine.forward('什麼樣的便當？','hira',examples).text,'しぇんまやんでべんだん？');
 const personal=engine.forward('什麼樣的便當？','mixed',examples,{'便當':'べんとう'});
 assert.match(personal.text,/べんとう？$/,'personal phrase inside a built-in must win');
+for(const source of ['今天我想喝珍珠奶茶','圖書館裡的音樂很好聽','這件事情實在令人難以理解']){
+ const mixed=engine.forward(source,'mixed');const hira=engine.forward(source,'hira');const kata=engine.forward(source,'kata');
+ assert.match(mixed.text,/\p{Script=Han}/u);assert.match(mixed.text,/[ぁ-ゖ]/u);
+ assert.doesNotMatch(hira.text,/\p{Script=Han}/u);assert.doesNotMatch(kata.text,/\p{Script=Han}/u);
+ assert.equal(mixed.speechText,hira.speechText);assert.equal(mixed.speechText,kata.speechText);assert.doesNotMatch(mixed.speechText,/\p{Script=Han}/u);
+}
+assert.match(engine.forward('我想去圖書館','mixed').text,/圖書館/);
+assert.match(engine.forward('珍珠奶茶','mixed',{}, {'奶茶':'ないちゃ'}).text,/ないちゃ$/);
 const rare=engine.forward('𠮷','mixed');assert.equal(rare.text,'𠮷');assert.equal(rare.unknown,1);assert.equal(rare.speechText.trim(),'');
 assert.equal(engine.forward('𠮷','kata',{}, {'𠮷':'よし'}).speechText,'ヨシ');
 assert.equal(engine.forward('奶茶','kata',{}, {'奶茶':'弁当龘'}).speechText,'ベンダンダ');
