@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.5 — 2026-10-16
+
+- Replace the limited forward character lookup with a bundled pinyin-pro dictionary and explicit kana spellings for all 416 vendor syllables tested.
+- Normalize Traditional Chinese with local OpenCC for contextual readings such as 銀行, 行長, 重慶 and 音樂, preserving original input and history.
+- Generate display and katakana speech from one result, retain built-in jokes, prioritize custom mappings inside curated phrases and visibly flag rare unknown characters for correction.
+- Add Japanese → funny Chinese homophones as the default reverse mode, with Chinese speech, kana normalization, digraphs, long vowels, short pauses and Japanese examples.
+- Preserve the original history-based reverse decoder under 「還原原句」 with its ambiguity warnings and saved data intact.
+- Bundle pinned libraries with licenses/provenance and test syllable coverage, novel sentences, context, unknown corrections, both reverse modes, speech and mobile layouts.
+
 ## v1.4 — 2026-10-16
 
 - Remove the Convert button; retain instant input conversion and all display modes.

@@ -4,14 +4,15 @@
 <meta name="theme-color" content="#fff4e9"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="日本華語">
 <meta name="description" content="把中文變成可愛的假日文，一鍵複製，聊天更有梗！">
 <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./favicon-32.png" type="image/png" sizes="32x32"><link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
-<link rel="stylesheet" href="./style.css"><script src="./app.js" defer></script>
+<link rel="stylesheet" href="./style.css"><script src="./vendor/opencc-t2cn-1.4.2.js" defer></script><script src="./vendor/pinyin-pro-3.29.5.js" defer></script><script src="./pronunciation.js" defer></script><script src="./app.js" defer></script>
 <title>日本華語 · Nihon Huayu</title></head>
 <body><div class="shell">
-<header class="top"><div class="logo"><button class="cat-button brand-cat" type="button" data-cat="1" aria-label="逗逗貓咪一號"><img class="logo-image" src="./Cat%201.png" alt="" width="43" height="43" draggable="false"></button><span>日本華語<small>NIHON HUAYU</small></span></div><span class="version">✿ v1.4</span></header>
+<header class="top"><div class="logo"><button class="cat-button brand-cat" type="button" data-cat="1" aria-label="逗逗貓咪一號"><img class="logo-image" src="./Cat%201.png" alt="" width="43" height="43" draggable="false"></button><span>日本華語<small>NIHON HUAYU</small></span></div><span class="version">✿ v1.5</span></header>
 <main>
 <div class="hero"><p class="eyebrow">中文聊天 · 日文靈魂</p><div class="hero-art"><button class="cat-button hero-cat" type="button" data-cat="1" aria-label="逗逗貓咪一號"><img class="mascot-illustration" src="./Cat%201.png" alt="" width="138" height="138" draggable="false"></button><div class="bubble">にほんご…かな？ ✨</div></div><h1>講中文，<em>裝日文。</em></h1><p class="subtitle">把普通聊天變成可愛又荒謬的假日文 ♡</p></div>
 <section class="workspace" aria-label="文字轉換">
 <div class="direction"><button class="lang active" id="fromLang" type="button">中文</button><button class="swap" id="swap" aria-label="切換轉換方向" title="切換方向">⇄</button><button class="lang" id="toLang" type="button">假日文</button></div>
+<div id="reverseModes" class="reverse-modes" role="group" aria-label="日文轉中文方式" hidden><button type="button" data-reverse-mode="sound" class="selected" aria-pressed="true">🍙 諧音中文</button><button type="button" data-reverse-mode="restore" aria-pressed="false">↶ 還原原句</button></div>
 <div class="chat-message input-message">
 <button id="inputCat" class="cat-button chat-cat" type="button" data-cat="1" aria-label="逗逗說中文的貓咪"><img src="./Cat%201.png" alt="" width="60" height="60" draggable="false"></button>
 <div class="input-bubble speech-bubble">
@@ -29,7 +30,7 @@
 <details class="speech-settings"><summary>語音設定 · iPhone 沒聲音？</summary><label for="speechVoice">朗讀聲音</label><select id="speechVoice"><option value="">自動選擇（Safari 建議）</option></select><p>iPhone 請調高媒體音量。若仍無聲，可在「設定 → 輔助使用」的朗讀語音設定下載日文或中文語音，回到 Safari 再點朗讀。也可試選其他聲音。</p></details>
 </section>
 <section class="customize" aria-label="自訂讀音"><details id="customDetails"><summary>⚙️ 自訂讀音 <span>我的專屬假日文</span></summary><p class="settinghelp">新增常用中文詞語和想要的假日文寫法。完全保存在這部裝置，不會上傳。</p><form id="mappingForm" class="mappingform"><label>中文詞語<input id="mappingChinese" maxlength="24" placeholder="例如：奶茶" required></label><label>假日文（混搭）<input id="mappingJapanese" maxlength="80" placeholder="例如：ないちゃ" required></label><button type="submit">＋ 新增</button></form><ul id="mappingList" class="mappinglist" aria-label="已儲存的自訂讀音"></ul><button type="button" id="resetMappings" class="subtle reset">清除全部自訂讀音</button></details></section>
-<section class="samples"><div class="sectiontitle"><h2>🍮 不知道說什麼？</h2><span>點一下試試</span></div><div class="chips"><button data-example="什麼樣的便當？">什麼樣的便當？</button><button data-example="好吃的嗎？">好吃的嗎？</button><button data-example="你在幹嘛？">你在幹嘛？</button><button data-example="真的假的？">真的假的？</button><button data-example="我不知道耶">我不知道耶</button><button data-example="我要睡覺了">我要睡覺了</button></div></section>
+<section class="samples"><div class="sectiontitle"><h2>🍮 不知道說什麼？</h2><span>點一下試試</span></div><div class="chips" id="chineseExamples"><button data-example="什麼樣的便當？">什麼樣的便當？</button><button data-example="好吃的嗎？">好吃的嗎？</button><button data-example="你在幹嘛？">你在幹嘛？</button><button data-example="真的假的？">真的假的？</button><button data-example="我不知道耶">我不知道耶</button><button data-example="我要睡覺了">我要睡覺了</button></div><div class="chips" id="japaneseExamples" hidden><button data-japanese-example="ありがとう！">ありがとう！</button><button data-japanese-example="こんにちは">こんにちは</button><button data-japanese-example="おはよう">おはよう</button><button data-japanese-example="すみません">すみません</button><button data-japanese-example="日本語が好き！">日本語が好き！</button><button data-japanese-example="コーヒー">コーヒー</button></div></section>
 </main><footer>Made for silly conversations ☁️ <span>·</span> No account, no uploads</footer></div>
 <div id="toast" role="status" aria-live="polite"></div>
 </body></html>

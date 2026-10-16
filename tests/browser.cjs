@@ -25,12 +25,14 @@ async function run(browser){
   Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>{if(mock.copyFail)throw Error();mock.clipboard.push(text)}},configurable:true});
   Object.defineProperty(navigator,'share',{value:async data=>{if(mock.shareFail)throw Object.assign(Error(),{name:mock.shareFail});mock.shares.push(data)},configurable:true});
  });
- const page=await context.newPage();const errors=[];
+ const page=await context.newPage();const errors=[],requestOrigins=new Set();
+ page.on('request',req=>requestOrigins.add(new URL(req.url()).origin));
  page.on('pageerror',e=>errors.push(e.message));
  page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
  await page.goto(`http://127.0.0.1:${server.address().port}`);
  const fill=async text=>page.locator('#source').fill(text);
  const output=()=>page.locator('#output').textContent();
+ const forwardExample=async text=>{if(!await page.locator('#chineseExamples').isVisible())await page.locator('#swap').click();await page.locator(`[data-example="${text}"]`).click()};
  await fill('什麼樣的便當？');assert.equal(await output(),'しぇんまやんで弁当？');
  assert.equal(await page.locator('#convert').count(),0);
  assert.equal(await page.locator('#inputCat').getAttribute('data-cat'),'1');
@@ -47,13 +49,21 @@ async function run(browser){
  await page.locator('#speak').click();
  await page.locator('[data-mode="hira"]').click();assert.equal(await output(),'しぇんまやんでべんだん？');
  await page.locator('[data-mode="kata"]').click();assert.equal(await output(),'シェンマヤンデベンダン？');
- await page.locator('#swap').click();assert.equal(await output(),'什麼樣的便當？');assert.match(await page.locator('#note').textContent(),/歧義/);
+ await page.locator('#swap').click();
+ assert.equal(await page.locator('[data-reverse-mode="sound"]').getAttribute('aria-pressed'),'true');
+ await fill('ありがとう！');assert.equal(await output(),'阿哩嘎多！');
+ await page.locator('#speak').click();assert.equal(await page.evaluate(()=>mock.spoken.at(-1).text),'阿哩嘎多！');assert.equal(await page.evaluate(()=>mock.spoken.at(-1).lang),'zh-TW');await page.locator('#speak').click();
+ await fill('シェンマヤンデベンダン？');await page.locator('[data-reverse-mode="restore"]').click();assert.equal(await output(),'什麼樣的便當？');assert.match(await page.locator('#note').textContent(),/歧義/);
  assert.equal(await page.locator('#inputCat').getAttribute('data-cat'),'2');
  assert.equal(await page.locator('#outputCat').getAttribute('data-cat'),'1');
  assert.equal(await page.locator('#kanaReading').isVisible(),false);
  await fill('ぁ');assert.match(await page.locator('#note').textContent(),/不保證|多種/);
- await page.locator('[data-example="你在幹嘛？"]').click();
+ await forwardExample('你在幹嘛？');
  await page.locator('[data-mode="mixed"]').click();assert.equal(await output(),'にざいがんま？');
+ await fill('圖書館裡的鬱金香綻放了');assert.doesNotMatch(await output(),/\p{Script=Han}/u);assert.doesNotMatch(await page.locator('#note').textContent(),/未收錄/);
+ assert.equal(await page.locator('#source').inputValue(),'圖書館裡的鬱金香綻放了');
+ await page.locator('#speak').click();assert.match(await page.evaluate(()=>mock.spoken.at(-1).text),/^[ァ-ヶー]+$/);await page.locator('#speak').click();
+ await page.locator('#swap').click();await page.locator('[data-reverse-mode="restore"]').click();assert.equal(await output(),'圖書館裡的鬱金香綻放了');await page.locator('#swap').click();
  await page.locator('#customDetails').evaluate(el=>{el.open=true});
  await page.locator('#mappingChinese').fill('奶茶');await page.locator('#mappingJapanese').fill('ないちゃ');
  await page.locator('#mappingForm button').click();await fill('奶茶，謝謝！');assert.equal(await output(),'ないちゃ、しぇしぇ！');
@@ -103,16 +113,16 @@ async function run(browser){
   await cat.dispatchEvent('pointercancel');await page.mouse.up();assert.equal(await img.getAttribute('src'),normal);
  }
  await page.locator('#customDetails').evaluate(el=>{el.open=true});
- await page.locator('#mappingChinese').fill('奶茶');await page.locator('#mappingJapanese').fill('弁当龘');await page.locator('#mappingForm button').click();
- await page.locator('[data-example="你在幹嘛？"]').click();await fill('奶茶');
- assert.equal(await output(),'弁当龘');assert.match(await page.locator('#kanaReading').textContent(),/ベンダン.*略過/);
- await page.locator('#speak').click();assert.equal(await page.evaluate(()=>mock.spoken.at(-1).text),'ベンダン');
+ await page.locator('#mappingChinese').fill('奶茶');await page.locator('#mappingJapanese').fill('弁当龘𠮷');await page.locator('#mappingForm button').click();
+ await forwardExample('你在幹嘛？');await fill('奶茶');
+ assert.equal(await output(),'弁当龘𠮷');assert.match(await page.locator('#kanaReading').textContent(),/ベンダンダ〔𠮷〕.*自訂/);
+ await page.locator('#speak').click();assert.equal((await page.evaluate(()=>mock.spoken.at(-1).text)).trim(),'ベンダンダ');
  await page.locator('#speak').click();
- await page.reload();await fill('奶茶');assert.equal(await output(),'弁当龘');
+ await page.reload();await fill('奶茶');assert.equal(await output(),'弁当龘𠮷');
  await page.locator('#customDetails').evaluate(el=>{el.open=true});await page.locator('#mappingList button').click();
- assert.notEqual(await output(),'弁当龘');await page.locator('#customDetails').evaluate(el=>{el.open=false});
+ assert.notEqual(await output(),'弁当龘𠮷');await page.locator('#customDetails').evaluate(el=>{el.open=false});
  await fill('<img src=x onerror=alert(1)>');assert.equal(await page.locator('#output img').count(),0);
- await page.locator('[data-example="什麼樣的便當？"]').click();
+ await forwardExample('什麼樣的便當？');
  await page.locator('[data-mode="mixed"]').click();
  await page.locator('.speech-settings').evaluate(el=>{el.open=false});
  for(const width of [320,375,390,1280]){
@@ -130,10 +140,15 @@ async function run(browser){
    const x=await page.locator(a).boundingBox(),y=await page.locator(b).boundingBox();assert(x.x+x.width<=y.x+1,`${a} overlaps ${b} at ${width}`);
   }
   if(width===390||width===1280)await page.screenshot({path:path.join(process.env.TEMP||root,`nihonhuayu-${width}.png`),fullPage:true});
+  await page.locator('#swap').click();await page.locator('[data-reverse-mode="sound"]').click();
+  await page.locator('[data-japanese-example="ありがとう！"]').click();assert.equal(await output(),'阿哩嘎多！');
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  if(width===390)await page.screenshot({path:path.join(process.env.TEMP||root,'nihonhuayu-reverse-390.png'),fullPage:true});
+  await forwardExample('什麼樣的便當？');
  }
  const manifest=await page.evaluate(async()=>await(await fetch('./manifest.webmanifest')).json());
  for(const icon of manifest.icons)assert((await page.request.get(new URL(icon.src,page.url()).href)).ok());
- assert.deepEqual(errors,[]);await context.close();
+ assert.deepEqual(errors,[]);assert.deepEqual([...requestOrigins],[new URL(page.url()).origin]);await context.close();
  const unsupported=await browser.newContext();await unsupported.addInitScript(()=>{delete window.speechSynthesis;delete window.SpeechSynthesisUtterance});
  const p=await unsupported.newPage();await p.goto(`http://127.0.0.1:${server.address().port}`);await p.locator('#source').fill('你好');await p.locator('#speak').click({force:true});assert.match(await p.locator('#toast').textContent(),/不支援/);await unsupported.close();
  const touch=await browser.newContext({hasTouch:true,isMobile:true,viewport:{width:390,height:844},reducedMotion:'reduce'});
@@ -149,6 +164,10 @@ async function run(browser){
  assert.match(frames[0].src,/-2/);assert.doesNotMatch(frames[1].src,/-2/);
  assert.match(frames[2].src,/-2/);assert.doesNotMatch(frames[3].src,/-2/);
  await touch.close();
+ const missingDictionary=await browser.newContext();
+ await missingDictionary.route('**/vendor/pinyin-pro-3.29.5.js',route=>route.fulfill({status:200,contentType:'text/javascript',body:'/* Simulated dictionary load failure. */'}));
+ const d=await missingDictionary.newPage();const degradedErrors=[];d.on('pageerror',e=>degradedErrors.push(e.message));
+ await d.goto(`http://127.0.0.1:${server.address().port}`);await d.locator('#source').fill('圖書館');assert.match(await d.locator('#note').textContent(),/字典未載入/);assert.equal(await d.locator('#output').textContent(),'圖書館');assert.deepEqual(degradedErrors,[]);await missingDictionary.close();
 }
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

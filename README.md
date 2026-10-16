@@ -1,4 +1,4 @@
-# 日本華語 · Nihon Huayu 🍡 v1.4
+# 日本華語 · Nihon Huayu 🍡 v1.5
 
 A playful Mandarin → fake-Japanese chat converter, inspired by messages like **什麼樣的便當？ → しぇんまやんで弁当？**.
 
@@ -8,7 +8,8 @@ A playful Mandarin → fake-Japanese chat converter, inspired by messages like *
 
 - Mandarin → playful mixed Japanese script (kanji + hiragana)
 - Hiragana-only and katakana-only styles
-- Reverse lookup (best effort for arbitrary pasted text)
+- Japanese kana → funny Chinese homophones, read by a Chinese voice (e.g. ありがとう → 阿哩嘎多)
+- Optional reverse lookup via 「還原原句」 (best effort for arbitrary pasted text)
 - Exact local round-trip restoration for messages converted on the same device/browser (up to 100 saved results)
 - Real-time as-you-type conversion, example phrases, one-tap copy and native sharing
 - User-defined pronunciation mappings stored locally (Settings)
@@ -16,11 +17,12 @@ A playful Mandarin → fake-Japanese chat converter, inspired by messages like *
 - Speech-bubble input/output: Cat 1 speaks Chinese, Cat 2 speaks pseudo-Japanese; switching direction swaps their positions
 - Press-and-release cat expressions and talking animation using the uploaded alternate PNGs
 - Separate katakana speech reading, with small reading text below the main Japanese result
+- Broad local Mandarin pronunciation dictionary, contextual polyphones and a complete mapping for its 416 tone-free syllables
 - Zero account requirements; conversions run on-device; no analytics, backend or API keys
 
 ### Important limitations
 
-This is a **fun phonetic approximation**, *not* a Japanese translator. Mixed-script output is intentionally non-standard. The first version includes a limited Mandarin character lexicon and curated phrase mappings; unknown Chinese characters are left intact. Reverse conversion is naturally ambiguous because many Mandarin words have overlapping pronunciations. When no saved original is available, results are guesses; unknown kana are marked in brackets. No input is uploaded, and local conversion history is saved in browser localStorage.
+This is a **fun phonetic approximation**, *not* a meaning translator. Mixed-script output is intentionally non-standard. Mandarin readings now come from a broad dictionary; rare unsupported characters remain visible, are marked in the small reading, and can be corrected with custom kana mappings. Japanese kana have broad phonetic coverage; Japanese kanji support is a small starter vocabulary, not a full Japanese reading dictionary. Use kana for unknown Japanese words. 「諧音中文」 imitates Japanese sounds without recovering meaning; 「還原原句」 retains the original ambiguous reverse lookup and saved round trips. No input is uploaded, and local conversion history is saved in browser localStorage.
 
 ## GitHub Pages
 
@@ -39,6 +41,8 @@ This is a **fun phonetic approximation**, *not* a Japanese translator. Mixed-scr
 - `index.html`: accessible app structure
 - `style.css`: responsive styling and animations
 - `app.js`: local rule-based conversion, reverse decoding, UI behaviors
+- `pronunciation.js`: complete Mandarin syllable mapping, shared display/speech pipeline and funny Chinese kana reader
+- `vendor/`: pinned local pronunciation and Traditional Chinese normalization libraries with licenses and provenance
 - `Cat 1.png`, `Cat 2.png`: original uploaded artwork (capitalization and spaces matter)
 - `Cat 1 -2.png`, `Cat 2 -2.png`: original uploaded alternate expressions
 - `apple-touch-icon.png`, `favicon-32.png`, `icon-192.png`, `icon-512.png`: derived branding icons
@@ -50,7 +54,7 @@ No build step. Open `index.html` in a browser or deploy with GitHub Pages.
 
 ## Next improvements
 
-- Larger pinyin pronunciation table and smarter phrase segmentation
+- A full Japanese kanji reading dictionary (currently kana plus a starter vocabulary)
 - User-editable dictionary for slang, particle endings and preferred spellings
 - Optional tone / rhythm settings
 - Improved reverse-candidate selection with multiple choices
@@ -77,6 +81,8 @@ With Playwright installed as a development-only dependency, run `node tests/brow
 
 See [TESTING.md](./TESTING.md) for results and the remaining physical-iPhone checks.
 
+Run `node tests/pronunciation.cjs` for the standalone pronunciation checks; they require no installed test dependency.
+
 ## v1.4 conversation and speech update
 
 Conversion is entirely live; the Convert button has been removed. Cat 1 stays associated with Chinese and Cat 2 with Japanese. The input and result are their speech bubbles, and reversing direction swaps the cats. All four displayed cat buttons (brand, hero, input and output) support a held expression for pointer/touch and Space/Enter. Release, pointer cancellation, lost capture, blur and hiding the page restore their state. Uploaded images are preloaded and decoded without editing their appearance.
@@ -88,3 +94,13 @@ Japanese speech uses a separate katakana reading generated from the source, rega
 Safari speech now defaults to language-only system voice resolution, without forcing a voice from `getVoices()`. This accommodates [WebKit's reported missing Japanese voice enumeration](https://bugs.webkit.org/show_bug.cgi?id=250665). The optional voice settings allow choosing an exposed Japanese or Chinese voice; voices can arrive later without triggering playback. Voice choices are retained per language for the current page session. No speech cancellation occurs while idle or on normal completion. This avoids unnecessary cancel/speak transitions, a sequence with [historical WebKit regressions](https://bugs.webkit.org/show_bug.cgi?id=191745). These changes address compatibility risks; they do not establish the cause of silence on a particular device.
 
 Playback still starts synchronously in the tap handler, with no timer or voice-loading wait before `speak()`. Bounded watchdogs recover missing native callbacks. Visible errors and the iPhone help panel suggest media volume, another voice or downloading a system language voice. Physical iOS Safari audio still requires testing on a real iPhone; desktop WebKit and mocked speech cannot verify audible playback.
+
+## v1.5 pronunciation engine
+
+The forward pipeline is **Chinese → contextual pinyin → explicit kana syllables → display and speech**. [pinyin-pro 3.29.5](https://github.com/zh-lx/pinyin-pro) supplies readings. A local [OpenCC t2cn 1.4.2](https://github.com/nk2028/opencc-js) build normalizes Traditional Chinese only for pronunciation analysis, so phrase readings work for both scripts (e.g. 銀行行長, 重慶, 音樂). The original source and saved text retain their script. All 416 tone-free syllables found in the vendor's BMP Han dictionary, including polyphonic readings, have an explicit kana spelling. This is a coverage check, not a guarantee of perfect pronunciation: Mandarin tones and some sounds cannot be reproduced by Japanese TTS, and names/ambiguous phrases may need personal overrides.
+
+Built-in jokes remain available. Personal mappings take precedence even inside a longer curated phrase. A single result object supplies the mixed/hiragana/katakana display and katakana speech; the app no longer separately guesses a reading from the rendered kanji. Literal punctuation, emoji and Latin input remain intact. Unsupported Han remain in the main result and are bracketed in the reading; they are not given a fabricated pronunciation. Add a custom mapping for the marked character to complete speech. If the vendor dictionaries fail to load, the interface reports this and asks for a refresh rather than claiming broad conversion worked.
+
+Japanese → Chinese now defaults to 「諧音中文」: kana morae become Mandarin-readable Chinese homophones. Examples include `ありがとう！ → 阿哩嘎多！` and `こんにちは → 空尼七哇`. The Chinese voice (`zh-TW`) reads those characters, intentionally sounding like funny Japanese. Hiragana, katakana, half-width katakana, small-kana combinations, dakuten, long vowels and short consonant pauses are handled. A starter list expands Japanese words such as 日本語, 学校, 好き and 弁当 to kana; unknown Japanese kanji/symbols are bracketed and require kana input. The old 「還原原句」 choice remains separate, including existing localStorage history, custom mappings and ambiguity warnings. The two modes deliberately produce different results.
+
+Both libraries are self-hosted, pinned and shipped with their licenses. No CDN request, cloud translation, account, API key or build step is required. See [vendor/README.md](./vendor/README.md) for source and integrity details.
