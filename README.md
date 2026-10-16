@@ -10,7 +10,8 @@ A playful Mandarin → fake-Japanese chat converter, inspired by messages like *
 - Hiragana-only and katakana-only styles
 - Reverse lookup (best effort for arbitrary pasted text)
 - Exact local round-trip restoration for messages converted on the same device/browser (up to 100 saved results)
-- Example phrases, one-tap copy and native sharing
+- Real-time as-you-type conversion, example phrases, one-tap copy and native sharing
+- User-defined pronunciation mappings stored locally (Settings)
 - Mobile-first, pastel UI featuring the cropped cat logo
 - Zero account requirements; conversions run on-device; no analytics, backend or API keys
 
@@ -50,3 +51,6 @@ No build step. Open `index.html` in a browser or deploy with GitHub Pages.
 - PNG icons and offline service worker
 
 MIT license can be added later if desired.
+
+## v1.1 notes
+The app uses a transparent-background SVG mascot for its large hero artwork, with no rectangular image background. The original supplied `logo.webp` is retained in the repository. iOS Home Screen icons are platform-masked and may not show transparent backgrounds in the same way as in-app artwork.
