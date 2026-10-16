@@ -87,7 +87,18 @@ function loadHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||
 function remember(source,converted){
  try{const saved=loadHistory();saved[hira(converted)]=source;const keys=Object.keys(saved);if(keys.length>100)delete saved[keys[0]];localStorage.setItem(HISTORY_KEY,JSON.stringify(saved))}catch{}
 }
-let reverse=false,mode="mixed",last="";
+// Speech has a separate kana reading so mixed-script kanji are never sent to
+// Japanese TTS. Custom mappings use their kana and known phonetic equivalents.
+function katakanaReading(source){
+ const phonetic=encode(source,"kata").text.replace(/弁当/g,"ベンダン").replace(/睡覚/g,"シュイジアオ");
+ let omitted=false;
+ const text=kata(phonetic.replace(/\p{Script=Han}/gu,ch=>{
+  if(hanPinyin[ch])return pinyinToHira(hanPinyin[ch]);
+  omitted=true;return "";
+ }));
+ return {text,omitted};
+}
+let reverse=false,mode="mixed",last="",speechText="";
 const EMPTY_RESULT="ここに出るよ ♡";
 const setText=(value)=>{$("source").value=value;$("counter").textContent=[...value].length+" / 280";};
 function redraw(){
@@ -96,27 +107,85 @@ function redraw(){
  $("fromLang").classList.add("active");$("toLang").classList.remove("active");
  $("source").placeholder=reverse?"例如：しぇんまやんで弁当？":"例如：什麼樣的便當？";
  $("hint").textContent=reverse?"辨識貼上的假日文（盡力還原）":"越短越有梗！";
- $("convert").innerHTML=(reverse?"🔎 解碼！":"✨ 變身！")+'<span class="arrow">↗</span>';
+ setCat($("inputCat"),reverse?"2":"1");
+ setCat($("outputCat"),reverse?"1":"2");
+ $("resultLanguage").textContent=reverse?"貓咪一號 · 中文":"貓咪二號 · 假日文";
+ $("source").lang=reverse?"ja":"zh-Hant";
+ $("output").lang=reverse?"zh-Hant":"ja";
+ $("speechHelp").textContent=reverse?"中文結果使用中文語音朗讀。":"日文朗讀使用泡泡內小字的片假名讀音，仍是趣味近似中文發音。";
+ renderVoiceOptions();
  document.querySelector(".modebar").hidden=reverse;
  $("note").textContent=reverse?"貼上假日文就能試著還原中文。":"輸入一句中文試試看！";
 }
 function convert(silent=false){
  stopSpeaking();
  const source=$("source").value.trim();
- if(!source){last="";$("output").textContent=EMPTY_RESULT;$("resultBadge").textContent="等待施法中…";$("note").textContent=reverse?"反向轉換可能有多種結果，僅供參考。":"輸入一句中文試試看！";if(!silent)notify("先輸入一句話吧 ♡");return}
+ $("kanaReading").hidden=true;$("kanaReading").textContent="";speechText="";
+ if(!source){last="";$("output").textContent=EMPTY_RESULT;$("resultBadge").textContent="等你開口…";$("note").textContent=reverse?"反向轉換可能有多種結果，僅供參考。":"輸入一句中文試試看！";return}
  const result=reverse?decode(source):encode(source,mode);
  last=result.text;
+ if(reverse)speechText=last;
+ else{
+  const reading=katakanaReading(source);speechText=reading.text;
+  $("kanaReading").textContent="朗讀："+speechText+(reading.omitted?"（未收錄漢字略過）":"");
+  $("kanaReading").hidden=false;
+ }
  $("output").textContent=last||"（沒有結果）";
- $("resultBadge").textContent=reverse?"解碼完成 ✓":"變身成功 ✨";
+ $("resultBadge").textContent="即時更新 ✓";
  $("note").textContent=reverse?(result.restored?"已從這部裝置的轉換紀錄還原；其他句子可能有歧義。":result.unknown?"反向轉換不保證正確；無法辨識的音節已加括號。":"反向轉換依讀音猜測，可能有多種原句。"):(result.unknown?"部分生字未收錄，已保留原字。":"可愛度 +100 ✿ 這不是正式日文喔！");
  if(!reverse)remember(source,last);
  if(!silent && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) $("output").animate?.([{transform:"translateY(6px)",opacity:.3},{transform:"translateY(0)",opacity:1}],{duration:260,easing:"ease-out"});
 }
 let toastTimer;
+const catArt={"1":["./Cat%201.png","./Cat%201%20-2.png"],"2":["./Cat%202.png","./Cat%202%20-2.png"]};
+const catButtons=[...document.querySelectorAll(".cat-button")];
+// Preload and decode alternatives so expression changes do not start a fetch.
+const catPreloads=Object.values(catArt).flat().map(src=>{const img=new Image();img.src=src;img.decode().catch(()=>{});return img});
+const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)");
+let talkingTimer,talkingFrame=false,talking=false;
+function renderCat(button){
+ const speaking=talking&&(button.id==="outputCat"||button.classList.contains("hero-cat"));
+ const open=button.dataset.pressed==="true"||(speaking&&talkingFrame);
+ button.querySelector("img").src=catArt[button.dataset.cat][open?1:0];
+ button.classList.toggle("talking",speaking);
+}
+function setCat(button,cat){
+ button.dataset.cat=cat;
+ button.setAttribute("aria-label","逗逗說"+(cat==="1"?"中文":"假日文")+"的貓咪");
+ renderCat(button);
+}
+function stopTalking(){
+ clearInterval(talkingTimer);talking=false;talkingFrame=false;catButtons.forEach(renderCat);
+}
+function startTalking(){
+ stopTalking();talking=true;talkingFrame=true;catButtons.forEach(renderCat);
+ if(!reducedMotion.matches)talkingTimer=setInterval(()=>{talkingFrame=!talkingFrame;catButtons.forEach(renderCat)},220);
+}
+reducedMotion.addEventListener("change",()=>{if(talking)startTalking()});
+catButtons.forEach(button=>{
+ const press=()=>{button.dataset.pressed="true";renderCat(button)};
+ const release=()=>{button.dataset.pressed="false";renderCat(button)};
+ button.addEventListener("pointerdown",e=>{if(!e.isPrimary||e.button!==0)return;press();button.setPointerCapture(e.pointerId)});
+ for(const name of ["pointerup","pointercancel","lostpointercapture","blur"])button.addEventListener(name,release);
+ button.addEventListener("keydown",e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();press()}});
+ button.addEventListener("keyup",e=>{if(e.key===" "||e.key==="Enter"){e.preventDefault();release()}});
+});
+function releaseCats(){catButtons.forEach(b=>{b.dataset.pressed="false";renderCat(b)})}
+window.addEventListener("blur",releaseCats);
 const canSpeak="speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
 let activeSpeech=null, speechTimer, voices=[];
+const voiceChoices={"ja-JP":"","zh-TW":""};
+function renderVoiceOptions(){
+ const lang=reverse?"zh-TW":"ja-JP",select=$("speechVoice");
+ select.replaceChildren(new Option("自動選擇（Safari 建議）",""));
+ for(const voice of voices.filter(v=>v.lang.split(/[-_]/)[0]===lang.split("-")[0])){
+  select.add(new Option(voice.name+" · "+voice.lang,voice.voiceURI));
+ }
+ select.value=voiceChoices[lang];
+}
 function refreshVoices(){
  try{voices=window.speechSynthesis.getVoices()}catch{voices=[]}
+ renderVoiceOptions();
 }
 function speechState(playing,message=""){
  const b=$("speak");
@@ -125,45 +194,50 @@ function speechState(playing,message=""){
  b.setAttribute("aria-pressed",String(playing));
  $("speechStatus").textContent=message||(!canSpeak?"這個瀏覽器不支援語音朗讀。":"");
 }
-function stopSpeaking(){
+function stopSpeaking(cancel=true){
  // Invalidate callbacks before cancel(), which may fire an error synchronously.
+ const hadSpeech=!!activeSpeech;
  activeSpeech=null;
  clearTimeout(speechTimer);
+ stopTalking();
  speechState(false);
- if(canSpeak){try{window.speechSynthesis.cancel()}catch{}}
+ // Do not cancel an idle synthesizer on every keystroke or just before speak().
+ // Older WebKit versions have had cancel/next-utterance races.
+ if(canSpeak&&cancel){try{if(hadSpeech||window.speechSynthesis.speaking||window.speechSynthesis.pending)window.speechSynthesis.cancel()}catch{}}
 }
 function speakResult(){
- if(!last){notify("先變身一下吧！");return}
+ if(!last){notify("先輸入一句話吧！");return}
  if(!canSpeak){notify("這個瀏覽器不支援語音朗讀");return}
  if(activeSpeech){stopSpeaking();return}
+ if(!speechText.trim()){speechState(false,"這句話沒有可朗讀的讀音，請新增自訂讀音後重試。");return}
  stopSpeaking();
  refreshVoices();
  let utterance;
- try{utterance=new SpeechSynthesisUtterance(last)}catch{speechState(false,"無法啟動朗讀，請檢查裝置語音設定。");return}
+ try{utterance=new SpeechSynthesisUtterance(speechText)}catch{speechState(false,"無法啟動朗讀，請檢查裝置語音設定。");return}
  utterance.lang=reverse?"zh-TW":"ja-JP";
- // Prefer the exact locale, then a voice in the same language. An empty list
- // is normal during Safari startup: let the browser resolve utterance.lang.
- const language=utterance.lang.split("-")[0];
- const voice=voices.find(v=>v.lang.replace(/_/g,"-").toLowerCase()===utterance.lang.toLowerCase())||voices.find(v=>v.lang.split(/[-_]/)[0]===language);
+ // Safari can speak a language even when getVoices omits its system voice.
+ // Default to lang-only resolution; bind a voice only after explicit selection.
+ const voice=voices.find(v=>v.voiceURI===voiceChoices[utterance.lang]&&voiceChoices[utterance.lang]);
  if(voice)utterance.voice=voice;
  utterance.rate=.9;
+ utterance.volume=1;
  // These timers only recover missing native callbacks; they never delay speak().
  const watchdog=(ms,message)=>{
   clearTimeout(speechTimer);
   speechTimer=setTimeout(()=>{if(activeSpeech===utterance){stopSpeaking();speechState(false,message)}},ms);
  };
- utterance.onstart=()=>{if(activeSpeech===utterance){speechState(true,"朗讀中…");watchdog(Math.max(30000,[...last].length*1500),"朗讀已逾時停止，可再點一次朗讀。")}};
- utterance.onend=()=>{if(activeSpeech===utterance)stopSpeaking()};
+ utterance.onstart=()=>{if(activeSpeech===utterance){speechState(true,"朗讀中…");startTalking();watchdog(Math.max(30000,[...speechText].length*1500),"朗讀已逾時停止，可再點一次朗讀。")}};
+ utterance.onend=()=>{if(activeSpeech===utterance)stopSpeaking(false)};
  utterance.onerror=e=>{if(activeSpeech===utterance){
   stopSpeaking();
   if(e.error!=="canceled"&&e.error!=="interrupted"){
-   const message=e.error==="not-allowed"?"請再點一次朗讀，允許瀏覽器播放語音。":/voice|language/.test(e.error)?"找不到所需語音，請在裝置設定安裝日文或中文語音後重試。":"朗讀失敗，請檢查音量與裝置語音設定後重試。";
+   const message=e.error==="not-allowed"?"Safari 未允許播放，請直接再點一次朗讀。":/voice|language/.test(e.error)?"找不到所需語音，請展開語音設定選其他聲音或下載日文／中文語音。":"朗讀失敗，請檢查媒體音量，或在語音設定切換聲音後重試。";
    speechState(false,message);
   }
  }};
  activeSpeech=utterance;
  speechState(true,"正在啟動朗讀…");
- watchdog(10000,"語音未能啟動，請檢查裝置語音設定後再點朗讀。");
+ watchdog(10000,"語音未能啟動，請展開語音設定選其他聲音，並檢查 iPhone 媒體音量後再點朗讀。");
  try{
   // Keep both operations in the original click stack for iOS user activation.
   if(window.speechSynthesis.paused)window.speechSynthesis.resume();
@@ -173,16 +247,16 @@ function speakResult(){
 if(canSpeak){refreshVoices();window.speechSynthesis.addEventListener("voiceschanged",refreshVoices)}
 else{$("speak").setAttribute("aria-disabled","true");$("speechStatus").textContent="這個瀏覽器不支援語音朗讀。"}
 $("speak").addEventListener("click",speakResult);
-document.addEventListener("visibilitychange",()=>{if(document.hidden)stopSpeaking()});
+$("speechVoice").addEventListener("change",()=>{stopSpeaking();voiceChoices[reverse?"zh-TW":"ja-JP"]=$("speechVoice").value});
+document.addEventListener("visibilitychange",()=>{if(document.hidden){releaseCats();stopSpeaking()}});
 function notify(message){const t=$("toast");t.textContent=message;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2100)}
 $("source").addEventListener("input",()=>{$("counter").textContent=[...$("source").value].length+" / 280";convert(true)});
-$("convert").addEventListener("click",()=>convert(false));
 $("clear").addEventListener("click",()=>{setText("");convert(true);$("source").focus()});
 $("swap").addEventListener("click",()=>{const prior=$("source").value;if(last&&prior.trim())setText(last);reverse=!reverse;last="";redraw();convert(true)});
 document.querySelectorAll(".modes button").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.mode;document.querySelectorAll(".modes button").forEach(x=>x.classList.toggle("selected",x===b));if($("source").value.trim()&&!reverse)convert(true)}));
 document.querySelectorAll("[data-example]").forEach(b=>b.addEventListener("click",()=>{reverse=false;redraw();setText(b.dataset.example);convert(true);document.querySelector(".workspace").scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})}));
-$("copy").addEventListener("click",async()=>{if(!last){notify("先變身一下吧！");return}try{await navigator.clipboard.writeText(last);notify("複製成功！♡")}catch{notify("請長按結果來複製")}});
-$("share").addEventListener("click",async()=>{if(!last){notify("先變身一下吧！");return}if(navigator.share){try{await navigator.share({text:last})}catch(e){if(e.name!=="AbortError")notify("分享失敗，請使用複製結果")}}else{try{await navigator.clipboard.writeText(last);notify("已複製，可貼到聊天裡 ✿")}catch{notify("請長按結果來分享")}}});
+$("copy").addEventListener("click",async()=>{if(!last){notify("先輸入一句話吧！");return}try{await navigator.clipboard.writeText(last);notify("複製成功！♡")}catch{notify("請長按結果來複製")}});
+$("share").addEventListener("click",async()=>{if(!last){notify("先輸入一句話吧！");return}if(navigator.share){try{await navigator.share({text:last})}catch(e){if(e.name!=="AbortError")notify("分享失敗，請使用複製結果")}}else{try{await navigator.clipboard.writeText(last);notify("已複製，可貼到聊天裡 ✿")}catch{notify("請長按結果來分享")}}});
 function renderMappings(){
  const list=$("mappingList");list.replaceChildren();
  for(const [ch,jp] of Object.entries(customMappings).sort(([a],[b])=>a.localeCompare(b))){

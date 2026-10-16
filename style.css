@@ -79,3 +79,39 @@ input,textarea,select,[contenteditable]:not([contenteditable="false"]){font-size
 .speak[aria-disabled="true"]{opacity:.65}
 #toast{white-space:normal;width:max-content;max-width:calc(100vw - 24px);text-align:center;z-index:10}
 @media(max-width:380px){.hero-art{height:130px}.mascot-illustration{width:126px}.hero .bubble{right:0;max-width:142px}.resulthead{gap:6px;flex-wrap:wrap}}
+
+/* v1.4: the text itself is a conversation between the two cats. */
+.cat-button{display:block;border:0;padding:0;background:transparent;cursor:pointer;flex:none;line-height:0;border-radius:14px;-webkit-touch-callout:none}
+.cat-button img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
+.brand-cat{width:43px;height:43px}
+.hero-cat{width:138px;height:138px}
+.hero-cat .mascot-illustration{width:100%;height:100%;animation:none}
+.hero .bubble{pointer-events:none}
+.chat-message{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:start;margin-top:18px}
+.chat-cat{width:56px;height:56px;margin-top:14px}
+.speech-bubble{position:relative;border:2px solid #efc7d3;border-radius:20px;padding:12px;background:#fff6f8;min-width:0}
+.speech-bubble:before{content:"";position:absolute;left:-7px;top:31px;width:11px;height:11px;background:inherit;border-left:2px solid #efc7d3;border-bottom:2px solid #efc7d3;transform:rotate(45deg)}
+.input-bubble:focus-within{border-color:#df8da6}
+.input-bubble:focus-within:before{border-color:#df8da6}
+.input-bubble textarea{border:0;background:transparent;border-radius:10px;margin-top:4px;padding:6px 0;min-height:130px;resize:vertical}
+.input-bubble textarea:focus-visible{outline-offset:2px}
+.fieldtop{gap:4px;flex-wrap:wrap}
+.fieldtop label{font-size:12px}
+.fieldtop .subtle{font-size:12px;padding:0 2px}
+.input-bubble .controls{gap:5px;flex-wrap:wrap;line-height:1.5}
+.output-message{grid-template-columns:minmax(0,1fr) 56px;margin-top:15px}
+.output-message .chat-cat{grid-column:2;grid-row:1}
+.output-message .result{grid-column:1;grid-row:1;background:#fffaf0;border-color:#f4e0bf;margin-top:0}
+.output-message .speech-bubble:before{left:auto;right:-7px;transform:rotate(225deg);border-color:#f4e0bf}
+.output{font-size:23px;margin:14px 0 8px}
+.resulthead{flex-wrap:wrap;gap:5px;line-height:1.5}
+.note{margin-bottom:0}
+.kana-reading{font-size:12px;line-height:1.65;overflow-wrap:anywhere;color:#8b7167;margin:0 0 10px;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.modebar{margin-top:16px;margin-bottom:8px}
+.resultactions{margin-top:16px}
+.speech-settings{margin-top:12px;font-size:12px;line-height:1.7;color:#917d85}
+.speech-settings summary{cursor:pointer;padding:8px 0}
+.speech-settings label{display:block;margin:8px 0 4px}
+.speech-settings select{width:100%;min-width:0;min-height:44px;border:1px solid #e9d7df;border-radius:10px;padding:8px;background:#fffafc;color:#55404f;font-family:inherit}
+.speech-settings p{margin:8px 0 0}
+@media(max-width:380px){.chat-message{grid-template-columns:44px minmax(0,1fr);gap:9px}.output-message{grid-template-columns:minmax(0,1fr) 44px}.chat-cat{width:44px;height:44px;margin-top:20px}.speech-bubble{padding:10px}.hero-cat{width:126px;height:126px}.output{font-size:21px}}
