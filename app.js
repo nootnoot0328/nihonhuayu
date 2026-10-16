@@ -36,11 +36,21 @@ function pinyinToHira(p){
 const kata = s=>s.replace(/[ぁ-ゖ]/g,c=>String.fromCharCode(c.charCodeAt(0)+96));
 const hira = s=>s.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-96));
 const punctuation = {"？":"？","?":"？","！":"！","!":"！","。":"。",",":"、","，":"、","～":"〜","~":"〜","、":"、","；":"；",":":"：","：":"："," ":" "};
-const phrasePairs = Object.entries(examples).sort((a,b)=>b[0].length-a[0].length);
+const MAPPING_KEY = "nihonhuayu-custom-mappings-v1";
+function loadMappings(){
+  try {
+    const value=JSON.parse(localStorage.getItem(MAPPING_KEY)||"{}");
+    if(!value || typeof value!=="object" || Array.isArray(value)) return {};
+    return Object.fromEntries(Object.entries(value).filter(([k,v])=>typeof k==="string"&&k.length<=24&&k.length>0&&typeof v==="string"&&v.length<=80&&v.length>0));
+  }catch{return {}}
+}
+let customMappings=loadMappings();
+function phraseEntries(){return Object.entries({...examples,...customMappings}).sort((a,b)=>b[0].length-a[0].length)}
+const phrasePairs = phraseEntries();
 function encode(input,mode){
   let out="",unknown=0;
   for(let i=0;i<input.length;){
-    const match=phrasePairs.find(([ch])=>input.startsWith(ch,i));
+    const match=phraseEntries().find(([ch])=>input.startsWith(ch,i));
     if(match){
       const value=mode==="mixed"?match[1]:hira(match[1]).replace(/弁当/g,"べんだん").replace(/睡覚/g,"しゅいじあお");
       out+=mode==="kata"?kata(value):value;i+=match[0].length;continue;
@@ -53,15 +63,15 @@ function encode(input,mode){
   }
   return {text:out,unknown};
 }
-const reversePairs = [...phrasePairs].sort((a,b)=>b[1].length-a[1].length);
+function reverseEntries(){return phraseEntries().sort((a,b)=>b[1].length-a[1].length)}
 const syllables=Object.entries(hanPinyin).map(([ch,p])=>[pinyinToHira(p),ch]).filter(([k])=>k).sort((a,b)=>b[0].length-a[0].length);
 function decode(input){
  let out="",unknown=0;
  input=hira(input);
  const history=loadHistory();
- if(history[input])return {text:history[input],unknown:0,restored:true};
+ if(Object.prototype.hasOwnProperty.call(history,input))return {text:history[input],unknown:0,restored:true};
  for(let i=0;i<input.length;){
-   const phrase=reversePairs.find(([,kana])=>input.startsWith(hira(kana),i));
+   const phrase=reverseEntries().find(([,kana])=>input.startsWith(hira(kana),i));
    if(phrase){out+=phrase[0];i+=hira(phrase[1]).length;continue}
    const c=input[i];
    if(punctuation[c]!==undefined){out+=c;i++;continue}
@@ -78,6 +88,7 @@ function remember(source,converted){
  try{const saved=loadHistory();saved[hira(converted)]=source;const keys=Object.keys(saved);if(keys.length>100)delete saved[keys[0]];localStorage.setItem(HISTORY_KEY,JSON.stringify(saved))}catch{}
 }
 let reverse=false,mode="mixed",last="";
+const EMPTY_RESULT="ここに出るよ ♡";
 const setText=(value)=>{$("source").value=value;$("counter").textContent=[...value].length+" / 280";};
 function redraw(){
  $("fromLang").textContent=reverse?"假日文":"中文";
@@ -89,25 +100,25 @@ function redraw(){
  document.querySelector(".modebar").hidden=reverse;
  $("note").textContent=reverse?"貼上假日文就能試著還原中文。":"輸入一句中文試試看！";
 }
-function convert(){
+function convert(silent=false){
  const source=$("source").value.trim();
- if(!source){notify("先輸入一句話吧 ♡");return}
+ if(!source){last="";$("output").textContent=EMPTY_RESULT;$("resultBadge").textContent="等待施法中…";$("note").textContent=reverse?"反向轉換可能有多種結果，僅供參考。":"輸入一句中文試試看！";if(!silent)notify("先輸入一句話吧 ♡");return}
  const result=reverse?decode(source):encode(source,mode);
  last=result.text;
  $("output").textContent=last||"（沒有結果）";
  $("resultBadge").textContent=reverse?"解碼完成 ✓":"變身成功 ✨";
- $("note").textContent=reverse?(result.restored?"已從本機轉換紀錄完整還原 ♡":result.unknown?"有些音節無法辨識，已用括號標出。":"依常見句子與讀音推測，可能不是原句。"):(result.unknown?"部分生字未收錄，已保留原字。":"可愛度 +100 ✿ 這不是正式日文喔！");
+ $("note").textContent=reverse?(result.restored?"已從這部裝置的轉換紀錄還原；其他句子可能有歧義。":result.unknown?"反向轉換不保證正確；無法辨識的音節已加括號。":"反向轉換依讀音猜測，可能有多種原句。"):(result.unknown?"部分生字未收錄，已保留原字。":"可愛度 +100 ✿ 這不是正式日文喔！");
  if(!reverse)remember(source,last);
- $("output").animate?.([{transform:"translateY(6px)",opacity:.3},{transform:"translateY(0)",opacity:1}],{duration:260,easing:"ease-out"});
+ if(!silent && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) $("output").animate?.([{transform:"translateY(6px)",opacity:.3},{transform:"translateY(0)",opacity:1}],{duration:260,easing:"ease-out"});
 }
 let toastTimer;
 function notify(message){const t=$("toast");t.textContent=message;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2100)}
-$("source").addEventListener("input",()=>{$("counter").textContent=[...$("source").value].length+" / 280"});
-$("convert").addEventListener("click",convert);
+$("source").addEventListener("input",()=>{$("counter").textContent=[...$("source").value].length+" / 280";convert(true)});
+$("convert").addEventListener("click",()=>convert(false));
 $("clear").addEventListener("click",()=>{setText("");last="";$("output").textContent="ここに出るよ ♡";$("resultBadge").textContent="等待施法中…";$("source").focus()});
-$("swap").addEventListener("click",()=>{const prior=$("source").value;if(last&&prior.trim())setText(last);reverse=!reverse;last="";redraw();$("output").textContent="ここに出るよ ♡";$("resultBadge").textContent="等待施法中…"});
-document.querySelectorAll(".modes button").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.mode;document.querySelectorAll(".modes button").forEach(x=>x.classList.toggle("selected",x===b));if($("source").value.trim()&&!reverse)convert()}));
-document.querySelectorAll("[data-example]").forEach(b=>b.addEventListener("click",()=>{reverse=false;redraw();setText(b.dataset.example);convert();document.querySelector(".workspace").scrollIntoView({behavior:"smooth",block:"start"})}));
+$("swap").addEventListener("click",()=>{const prior=$("source").value;if(last&&prior.trim())setText(last);reverse=!reverse;last="";redraw();convert(true)});
+document.querySelectorAll(".modes button").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.mode;document.querySelectorAll(".modes button").forEach(x=>x.classList.toggle("selected",x===b));if($("source").value.trim()&&!reverse)convert(true)}));
+document.querySelectorAll("[data-example]").forEach(b=>b.addEventListener("click",()=>{reverse=false;redraw();setText(b.dataset.example);convert(true);document.querySelector(".workspace").scrollIntoView({behavior:"smooth",block:"start"})}));
 $("copy").addEventListener("click",async()=>{if(!last){notify("先變身一下吧！");return}try{await navigator.clipboard.writeText(last);notify("複製成功！♡")}catch{notify("請長按結果來複製")}});
 $("share").addEventListener("click",async()=>{if(!last){notify("先變身一下吧！");return}if(navigator.share){try{await navigator.share({text:last})}catch{}}else{try{await navigator.clipboard.writeText(last);notify("已複製，可貼到聊天裡 ✿")}catch{notify("請長按結果來分享")}}});
 redraw();
