@@ -121,4 +121,31 @@ document.querySelectorAll(".modes button").forEach(b=>b.addEventListener("click"
 document.querySelectorAll("[data-example]").forEach(b=>b.addEventListener("click",()=>{reverse=false;redraw();setText(b.dataset.example);convert(true);document.querySelector(".workspace").scrollIntoView({behavior:"smooth",block:"start"})}));
 $("copy").addEventListener("click",async()=>{if(!last){notify("先變身一下吧！");return}try{await navigator.clipboard.writeText(last);notify("複製成功！♡")}catch{notify("請長按結果來複製")}});
 $("share").addEventListener("click",async()=>{if(!last){notify("先變身一下吧！");return}if(navigator.share){try{await navigator.share({text:last})}catch{}}else{try{await navigator.clipboard.writeText(last);notify("已複製，可貼到聊天裡 ✿")}catch{notify("請長按結果來分享")}}});
+function renderMappings(){
+ const list=$("mappingList");list.replaceChildren();
+ for(const [ch,jp] of Object.entries(customMappings).sort(([a],[b])=>a.localeCompare(b))){
+  const li=document.createElement("li"),pair=document.createElement("span"),remove=document.createElement("button");
+  pair.textContent=ch+" → "+jp;
+  remove.type="button";remove.textContent="刪除";remove.setAttribute("aria-label","刪除 "+ch);
+  remove.addEventListener("click",()=>{delete customMappings[ch];persistMappings();renderMappings();convert(true)});
+  li.append(pair,remove);list.append(li);
+ }
+ if(!list.children.length){const li=document.createElement("li");li.className="empty";li.textContent="尚未新增自訂讀音";list.append(li)}
+}
+function persistMappings(){try{localStorage.setItem(MAPPING_KEY,JSON.stringify(customMappings))}catch{notify("此瀏覽器無法儲存設定")}}
+$("mappingForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const ch=$("mappingChinese").value.trim(),jp=$("mappingJapanese").value.trim();
+ if(!ch||!jp)return;
+ customMappings[ch]=jp;persistMappings();renderMappings();convert(true);
+ $("mappingForm").reset();notify("自訂讀音已儲存 ♡");
+});
+$("resetMappings").addEventListener("click",()=>{
+ if(!Object.keys(customMappings).length)return;
+ if(!confirm("確定清除所有自訂讀音？"))return;
+ customMappings={};persistMappings();renderMappings();convert(true);notify("已清除自訂讀音");
+});
+$("fromLang").addEventListener("click",()=>{if(reverse)$("swap").click()});
+$("toLang").addEventListener("click",()=>{if(!reverse)$("swap").click()});
+renderMappings();
 redraw();
