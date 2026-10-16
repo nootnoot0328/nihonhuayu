@@ -9,6 +9,12 @@
   "theme_color": "#fff4e9",
   "icons": [
     {
+      "src": "./logo.webp",
+      "sizes": "128x128",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
       "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
