@@ -55,3 +55,27 @@ textarea{font-size:17px!important}
 .resultactions button{min-width:0;padding:12px 4px;font-size:12px;min-height:44px}
 .speak{background:#fff;border:1px solid #e6cfc0;color:#856b7b}
 .logo-image,.mascot-illustration{background:transparent!important;mix-blend-mode:normal!important;filter:none!important}
+
+/* v1.3: compact cat conversations, editable controls and selectable results. */
+.hero-art{height:142px}
+.mascot-illustration{width:138px}
+.hero .bubble{top:12px;font-size:11px}
+.direction{margin-bottom:8px}
+.cat-chat{display:flex;align-items:center;gap:12px;margin:0 0 12px;pointer-events:none;user-select:none}
+.cat-chat img{width:52px;height:52px;object-fit:contain;flex:none}
+.cat-bubble{position:relative;border:1px solid #efc7d3;border-radius:15px;background:#fff4f7;padding:9px 12px;font-size:12px;color:#795868}
+.cat-bubble:before{content:"";position:absolute;left:-5px;top:calc(50% - 4px);width:8px;height:8px;background:inherit;border-left:1px solid #efc7d3;border-bottom:1px solid #efc7d3;transform:rotate(45deg)}
+.cat-reply{flex-direction:row-reverse;margin:9px 0 0}
+.cat-reply .cat-bubble{background:#fff9e9}
+.cat-reply .cat-bubble:before{left:auto;right:-5px;transform:rotate(225deg)}
+.cat-reply+.result{margin-top:9px}
+textarea{font-family:inherit;font-weight:500;line-height:1.65}
+input,textarea,select,[contenteditable]:not([contenteditable="false"]){font-size:16px;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.output{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+.speech-status,.speech-help{font-size:11px;line-height:1.5;color:#91766d;margin:10px 0 0}
+.speech-status:empty{display:none}
+.speech-status{color:#88516c}
+.speak[aria-pressed="true"]{background:#ffe0e8;border-color:#d76388;color:#924360}
+.speak[aria-disabled="true"]{opacity:.65}
+#toast{white-space:normal;width:max-content;max-width:calc(100vw - 24px);text-align:center;z-index:10}
+@media(max-width:380px){.hero-art{height:130px}.mascot-illustration{width:126px}.hero .bubble{right:0;max-width:142px}.resulthead{gap:6px;flex-wrap:wrap}}
