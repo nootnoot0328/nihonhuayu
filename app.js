@@ -101,6 +101,7 @@ function redraw(){
  $("note").textContent=reverse?"貼上假日文就能試著還原中文。":"輸入一句中文試試看！";
 }
 function convert(silent=false){
+ stopSpeaking();
  const source=$("source").value.trim();
  if(!source){last="";$("output").textContent=EMPTY_RESULT;$("resultBadge").textContent="等待施法中…";$("note").textContent=reverse?"反向轉換可能有多種結果，僅供參考。":"輸入一句中文試試看！";if(!silent)notify("先輸入一句話吧 ♡");return}
  const result=reverse?decode(source):encode(source,mode);
@@ -112,6 +113,29 @@ function convert(silent=false){
  if(!silent && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) $("output").animate?.([{transform:"translateY(6px)",opacity:.3},{transform:"translateY(0)",opacity:1}],{duration:260,easing:"ease-out"});
 }
 let toastTimer;
+const canSpeak="speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+let activeSpeech=null;
+function stopSpeaking(){
+ if(canSpeak)window.speechSynthesis.cancel();
+ activeSpeech=null;
+ const b=$("speak");if(b){b.textContent="🔊 朗讀";b.setAttribute("aria-label","朗讀結果")}
+}
+function speakResult(){
+ if(!last){notify("先變身一下吧！");return}
+ if(!canSpeak){notify("這個瀏覽器不支援語音朗讀");return}
+ if(activeSpeech){stopSpeaking();return}
+ const utterance=new SpeechSynthesisUtterance(last);
+ utterance.lang=reverse?"zh-TW":"ja-JP";
+ utterance.rate=.9;
+ utterance.onstart=()=>{if(activeSpeech===utterance)$("speak").textContent="■ 停止"};
+ utterance.onend=()=>{if(activeSpeech===utterance)stopSpeaking()};
+ utterance.onerror=e=>{if(activeSpeech===utterance){stopSpeaking();if(e.error!=="canceled"&&e.error!=="interrupted")notify("朗讀失敗，請檢查裝置語音設定")}};
+ activeSpeech=utterance;
+ window.speechSynthesis.cancel();
+ window.speechSynthesis.speak(utterance);
+}
+$("speak").addEventListener("click",speakResult);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)stopSpeaking()});
 function notify(message){const t=$("toast");t.textContent=message;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2100)}
 $("source").addEventListener("input",()=>{$("counter").textContent=[...$("source").value].length+" / 280";convert(true)});
 $("convert").addEventListener("click",()=>convert(false));
