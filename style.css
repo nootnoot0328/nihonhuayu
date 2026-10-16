@@ -127,3 +127,8 @@ input,textarea,select,[contenteditable]:not([contenteditable="false"]){font-size
 .mascot-swap{position:absolute;right:-10px;bottom:-2px;display:grid;place-items:center;width:44px;height:44px;border:2px solid #efc7d3;border-radius:50%;background:#fffafc;color:#ce6a8c;font-size:24px;line-height:1;cursor:pointer;box-shadow:0 3px 0 #f4d9e2;z-index:3}
 .mascot-swap:active{transform:translateY(2px)}
 @media(max-width:380px){.hero-mascot{width:126px;height:126px}}
+
+/* v1.7: speech-only cat sound toggle. */
+.speech-settings .toggle-row{display:flex;align-items:center;gap:10px;min-height:44px;margin:4px 0 8px;cursor:pointer;color:#6f5862;font-size:13px}
+.toggle-row input{width:20px;height:20px;flex:none;accent-color:#d9708f;margin:0}
+.toggle-row small{display:block;font-size:11px;color:#a8949b;line-height:1.5}

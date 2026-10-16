@@ -187,6 +187,19 @@ function stopSpeaking(cancel=true){
  // Older WebKit versions have had cancel/next-utterance races.
  if(canSpeak&&cancel){try{if(hadSpeech||window.speechSynthesis.speaking||window.speechSynthesis.pending)window.speechSynthesis.cancel()}catch{}}
 }
+const CAT_SOUND_KEY="nihonhuayu-cat-sound-v1";
+let catSound=true;
+try{if(localStorage.getItem(CAT_SOUND_KEY)==="off")catSound=false}catch{}
+$("catSound").checked=catSound;
+$("catSound").addEventListener("change",()=>{catSound=$("catSound").checked;try{localStorage.setItem(CAT_SOUND_KEY,catSound?"on":"off")}catch{}});
+// Speech only: insert the cat sound before closing punctuation so a question
+// still ends like a question. The visible result, Copy and Share are untouched.
+function withCatSound(text,chinese){
+ if(!catSound)return text;
+ const [,body,tail]=text.match(/^([\s\S]*?)([？！。?!.～〜~\s]*)$/);
+ if(!body.trim())return text;
+ return body+(chinese?"，喵":"、ニャン")+tail.trim();
+}
 function speakResult(){
  if(!last){notify("先輸入一句話吧！");return}
  if(!canSpeak){notify("這個瀏覽器不支援語音朗讀");return}
@@ -195,7 +208,7 @@ function speakResult(){
  stopSpeaking();
  refreshVoices();
  let utterance;
- try{utterance=new SpeechSynthesisUtterance(speechText)}catch{speechState(false,"無法啟動朗讀，請檢查裝置語音設定。");return}
+ try{utterance=new SpeechSynthesisUtterance(withCatSound(speechText,reverse))}catch{speechState(false,"無法啟動朗讀，請檢查裝置語音設定。");return}
  utterance.lang=reverse?"zh-TW":"ja-JP";
  // Safari can speak a language even when getVoices omits its system voice.
  // Default to lang-only resolution; bind a voice only after explicit selection.

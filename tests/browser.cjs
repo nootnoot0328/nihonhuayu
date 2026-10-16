@@ -42,7 +42,16 @@ async function run(browser){
  assert.match(await page.locator('#kanaReading').textContent(),/シェンマヤンデベンダン/);
  assert.equal(await page.evaluate(()=>mock.cancels),0,'idle typing must not cancel the synth');
  await page.locator('#speak').click();
- assert.equal(await page.evaluate(()=>mock.spoken.at(-1).text),'シェンマヤンデベンダン？');
+ assert.equal(await page.evaluate(()=>mock.spoken.at(-1).text),'シェンマヤンデベンダン、ニャン？');
+ assert.equal(await output(),'しぇんまやんで弁当？','cat sound is speech-only');
+ await page.locator('#speak').click();
+ await page.locator('.speech-settings').evaluate(el=>{el.open=true});await page.locator('#catSound').uncheck();
+ await page.locator('#speak').click();assert.equal(await page.evaluate(()=>mock.spoken.at(-1).text),'シェンマヤンデベンダン？');await page.locator('#speak').click();
+ assert.equal(await page.evaluate(()=>localStorage.getItem('nihonhuayu-cat-sound-v1')),'off');
+ await page.reload();assert.equal(await page.locator('#catSound').isChecked(),false,'toggle persists');
+ await page.locator('.speech-settings').evaluate(el=>{el.open=true});await page.locator('#catSound').check();await page.locator('.speech-settings').evaluate(el=>{el.open=false});
+ await forwardExample('什麼樣的便當？');
+ await page.locator('#speak').click();
  assert.equal(await page.evaluate(()=>mock.spoken.at(-1).voice),undefined,'automatic voice should use lang only');
  assert.match(await page.locator('#outputCat img').getAttribute('src'),/-2/);
  assert.match(await page.locator('.hero-cat img').getAttribute('src'),/-2/);
@@ -52,7 +61,7 @@ async function run(browser){
  await page.locator('#swap').click();
  assert.equal(await page.locator('[data-reverse-mode="sound"]').getAttribute('aria-pressed'),'true');
  await fill('ありがとう！');assert.equal(await output(),'阿哩嘎多！');
- await page.locator('#speak').click();assert.equal(await page.evaluate(()=>mock.spoken.at(-1).text),'阿哩嘎多！');assert.equal(await page.evaluate(()=>mock.spoken.at(-1).lang),'zh-TW');await page.locator('#speak').click();
+ await page.locator('#speak').click();assert.equal(await page.evaluate(()=>mock.spoken.at(-1).text),'阿哩嘎多，喵！');assert.equal(await page.evaluate(()=>mock.spoken.at(-1).lang),'zh-TW');await page.locator('#speak').click();
  await fill('シェンマヤンデベンダン？');await page.locator('[data-reverse-mode="restore"]').click();assert.equal(await output(),'什麼樣的便當？');assert.match(await page.locator('#note').textContent(),/歧義/);
  assert.equal(await page.locator('#inputCat').getAttribute('data-cat'),'2');
  assert.equal(await page.locator('#outputCat').getAttribute('data-cat'),'1');
@@ -62,7 +71,7 @@ async function run(browser){
  await page.locator('[data-mode="mixed"]').click();assert.equal(await output(),'にざいがんま？');
  await fill('圖書館裡的鬱金香綻放了');assert.match(await output(),/圖書館/);assert.doesNotMatch(await page.locator('#note').textContent(),/未收錄/);
  assert.equal(await page.locator('#source').inputValue(),'圖書館裡的鬱金香綻放了');
- await page.locator('#speak').click();assert.match(await page.evaluate(()=>mock.spoken.at(-1).text),/^[ァ-ヶー]+$/);await page.locator('#speak').click();
+ await page.locator('#speak').click();assert.match(await page.evaluate(()=>mock.spoken.at(-1).text),/^[ァ-ヶー]+、ニャン$/);await page.locator('#speak').click();
  await page.locator('#swap').click();await page.locator('[data-reverse-mode="restore"]').click();assert.equal(await output(),'圖書館裡的鬱金香綻放了');await page.locator('#swap').click();
  // The hero switch changes its own artwork, preserving conversion and speech.
  const beforeMascot=await output(),readingBefore=await page.locator('#kanaReading').textContent();
@@ -125,7 +134,7 @@ async function run(browser){
  await page.locator('#mappingChinese').fill('奶茶');await page.locator('#mappingJapanese').fill('弁当龘𠮷');await page.locator('#mappingForm button').click();
  await forwardExample('你在幹嘛？');await fill('奶茶');
  assert.equal(await output(),'弁当龘𠮷');assert.match(await page.locator('#kanaReading').textContent(),/ベンダンダ〔𠮷〕.*自訂/);
- await page.locator('#speak').click();assert.equal((await page.evaluate(()=>mock.spoken.at(-1).text)).trim(),'ベンダンダ');
+ await page.locator('#speak').click();assert.equal((await page.evaluate(()=>mock.spoken.at(-1).text)).trim(),'ベンダンダ、ニャン');
  await page.locator('#speak').click();
  await page.reload();await fill('奶茶');assert.equal(await output(),'弁当龘𠮷');
  await page.locator('#customDetails').evaluate(el=>{el.open=true});await page.locator('#mappingList button').click();

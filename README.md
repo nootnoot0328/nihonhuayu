@@ -1,4 +1,4 @@
-# 日本華語 · Nihon Huayu 🍡 v1.6
+# 日本華語 · Nihon Huayu 🍡 v1.7
 
 A playful Mandarin → fake-Japanese chat converter, inspired by messages like **什麼樣的便當？ → しぇんまやんで弁当？**.
 

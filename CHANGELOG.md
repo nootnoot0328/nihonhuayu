@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.7 — 2026-10-16
+
+- Speech now ends with a cat sound: 「喵」 for Chinese results and 「ニャン」 for Japanese results, inserted before closing punctuation so questions still sound like questions.
+- Speech only — the displayed result, Copy and Share are unchanged.
+- Add a 「朗讀結尾加貓叫」 toggle in 語音設定 (on by default, saved on this device).
+
 ## v1.6 — 2026-10-16
 
 - Restore mixed-script personality with familiar Chinese words and sparse Han accents in other sentences; retain kana-only display modes and unchanged katakana speech readings.
