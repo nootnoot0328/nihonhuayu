@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.8 — 2026-10-17
+
+- 諧音中文: Japanese kanji outside the starter vocabulary are kept as written and read by the Chinese voice, instead of being bracketed 〔〕 and skipped (e.g. うるさい奴等め → 烏嚕撒伊奴等咩).
+- Speech swaps common Japanese-only character forms to Traditional Chinese (気→氣, 様→樣, 駅→驛) so the Chinese voice reads them; the visible text, Copy and Share keep the original characters.
+- Brackets now only mark unrecognised symbols; notes and speech help updated.
+
 ## v1.7 — 2026-10-16
 
 - Speech now ends with a cat sound: 「喵」 for Chinese results and 「ニャン」 for Japanese results, inserted before closing punctuation so questions still sound like questions.

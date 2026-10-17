@@ -77,7 +77,7 @@ function redraw(){
  $("resultLanguage").textContent=reverse?(reverseMode==="sound"?"貓咪一號 · 諧音中文":"貓咪一號 · 中文"):"貓咪二號 · 假日文";
  $("source").lang=reverse?"ja":"zh-Hant";
  $("output").lang=reverse?"zh-Hant":"ja";
- $("speechHelp").textContent=reverse?(reverseMode==="sound"?"用中文語音唸諧音字，模仿日文聲音；不是意思翻譯。":"中文結果使用中文語音朗讀。"):"日文朗讀使用泡泡內小字的片假名讀音，仍是趣味近似中文發音。";
+ $("speechHelp").textContent=reverse?(reverseMode==="sound"?"用中文語音唸諧音字，模仿日文聲音；漢字直接用中文唸。不是意思翻譯。":"中文結果使用中文語音朗讀。"):"日文朗讀使用泡泡內小字的片假名讀音，仍是趣味近似中文發音。";
  renderVoiceOptions();
  document.querySelector(".modebar").hidden=reverse;
  $("reverseModes").hidden=!reverse;
@@ -100,7 +100,7 @@ function convert(silent=false){
  }
  $("output").textContent=last||"（沒有結果）";
  $("resultBadge").textContent="即時更新 ✓";
- $("note").textContent=reverse?(reverseMode==="sound"?(result.unknown?"諧音近似，沒有翻譯意思。〔括號〕內的日文漢字或符號請改用假名；朗讀會略過。":"中文諧音近似日文聲音，沒有翻譯意思，也不會還原原句。"):(result.restored?"已從這部裝置的轉換紀錄還原；其他句子可能有歧義。":result.unknown?"反向轉換不保證正確；無法辨識的音節已加括號。":"反向轉換依讀音猜測，可能有多種原句。")):(result.degraded?"讀音字典未載入，請重新整理；目前只能轉換範例及自訂詞。":result.unknown?"部分生字未收錄，已保留原字；請在自訂讀音輸入假名，補齊朗讀。":"可愛度 +100 ✿ 這不是正式日文喔！");
+ $("note").textContent=reverse?(reverseMode==="sound"?(result.unknown?"諧音近似，沒有翻譯意思。〔括號〕內的符號無法辨識；朗讀會略過。":result.kanji?"假名變諧音，日文漢字保留原樣、用中文唸。沒有翻譯意思。":"中文諧音近似日文聲音，沒有翻譯意思，也不會還原原句。"):(result.restored?"已從這部裝置的轉換紀錄還原；其他句子可能有歧義。":result.unknown?"反向轉換不保證正確；無法辨識的音節已加括號。":"反向轉換依讀音猜測，可能有多種原句。")):(result.degraded?"讀音字典未載入，請重新整理；目前只能轉換範例及自訂詞。":result.unknown?"部分生字未收錄，已保留原字；請在自訂讀音輸入假名，補齊朗讀。":"可愛度 +100 ✿ 這不是正式日文喔！");
  if(!reverse)remember(source,last);
  if(!silent && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) $("output").animate?.([{transform:"translateY(6px)",opacity:.3},{transform:"translateY(0)",opacity:1}],{duration:260,easing:"ease-out"});
 }

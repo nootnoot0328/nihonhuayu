@@ -137,12 +137,13 @@
  const japanesePhrases={"ありがとうございます":"阿哩嘎多勾雜伊媽蘇","ありがとう":"阿哩嘎多","こんにちは":"空尼七哇","こんばんは":"空幫哇","おはよう":"喔哈唷","すみません":"蘇米媽森","よろしく":"唷囉西庫"};
  const longest=object=>Object.entries(object).sort((a,b)=>b[0].length-a[0].length);
  const wordPairs=longest(japaneseWords),phrasePairs=longest(japanesePhrases),kanaPairs=longest(kana);
+ const jpToZh={"気":"氣","楽":"樂","駅":"驛","会":"會","来":"來","帰":"歸","売":"賣","読":"讀","写":"寫","変":"變","円":"圓","図":"圖","広":"廣","対":"對","発":"發","様":"樣","済":"濟","戦":"戰","単":"單","歳":"歲","区":"區","国":"國","学":"學","実":"實","体":"體","浜":"濱","沢":"澤","栄":"榮","薬":"藥","転":"轉","伝":"傳","聴":"聽","経":"經","続":"續","鉄":"鐵","関":"關","険":"險","検":"檢","験":"驗","権":"權","営":"營","応":"應","恋":"戀","処":"處","価":"價","辺":"邊","囲":"圍","両":"兩","乗":"乘","仏":"佛","児":"兒","塩":"鹽","壊":"壞","拡":"擴","数":"數","断":"斷","歩":"步","毎":"每","涙":"淚","満":"滿","焼":"燒","県":"縣","総":"總","縄":"繩","芸":"藝","蔵":"藏","覚":"覺","観":"觀","訳":"譯","証":"證","譲":"讓","豊":"豐","賛":"贊","軽":"輕","辞":"辭","郷":"鄉","酔":"醉","釈":"釋","銭":"錢","録":"錄","隠":"隱","雑":"雜","霊":"靈","静":"靜","頼":"賴","顔":"顏","騒":"騷","齢":"齡","黒":"黑","剤":"劑","剣":"劍","従":"從","徳":"德","悪":"惡","戻":"戾","択":"擇","挙":"舉","渋":"澀","稲":"稻","穏":"穩","拝":"拜","桜":"櫻","歓":"歡","浅":"淺","争":"爭","弁":"辨","当":"當","声":"聲","蛍":"螢","労":"勞","戸":"戶","込":"入","働":"動","畑":"田","峠":"嶺","匂":"香"};
  const vowelRows=["あぁかがさざただなはばぱまやゃらわゎ", "いぃきぎしじちぢにひびぴみりゐ", "うぅくぐすずつづぬふぶぷむゆゅるゔ", "えぇけげせぜてでねへべぺめれゑ", "おぉこごそぞとどのほぼぽもよょろを"];
  function funnyChinese(input){
   // NFKC covers half-width katakana, and NFC combines decomposed dakuten.
   let normalized=hira(input.normalize("NFKC").normalize("NFC"));
   for(const [word,reading] of wordPairs)normalized=normalized.split(word).join(reading);
-  let text="",speech="",unknown=0,lastVowel="";
+  let text="",speech="",unknown=0,kanji=0,lastVowel="";
   for(let i=0;i<normalized.length;){
    const phrase=phrasePairs.find(([key])=>normalized.startsWith(key,i));
    if(phrase){text+=phrase[1];speech+=phrase[1];i+=phrase[0].length;lastVowel="";continue}
@@ -154,12 +155,17 @@
    const c=String.fromCodePoint(normalized.codePointAt(i));i+=c.length;
    if(c==="っ"){text+="·";speech+="，";lastVowel="";continue}
    if(c==="ー"){text+=lastVowel||"〜";speech+=lastVowel;continue}
-   if(han.test(c)||/[\u3040-\u30ff]/u.test(c)&&c!=="・"){
+   // Kanji the starter vocabulary doesn't know stay as written and are read
+   // in Mandarin: a Chinese reader recognises them, and no Japanese reading
+   // dictionary is needed. Speech swaps Japanese-only shapes (気→氣) so the
+   // Chinese voice reads them reliably; the visible text keeps what was typed.
+   if(han.test(c)){text+=c;speech+=jpToZh[c]??c;kanji++;lastVowel="";continue}
+   if(/[\u3040-\u30ff]/u.test(c)&&c!=="・"){
     text+="〔"+c+"〕";speech+=" ";unknown++;lastVowel="";continue;
    }
    text+=punct(c);speech+=punct(c);lastVowel="";
   }
-  return {text,speechText:speech,unknown,reading:normalized};
+  return {text,speechText:speech,unknown,kanji,reading:normalized};
  }
  root.NihonPronunciation={forward,funnyChinese,mandarinTokens,pinyinToHira,syllables};
  if(typeof module!=="undefined"&&module.exports)module.exports=root.NihonPronunciation;

@@ -49,7 +49,11 @@ for(const [input,expected] of [['ありがとう！','阿哩嘎多！'],['アリ
  const result=engine.funnyChinese(input);assert.equal(result.text,expected,input);assert.equal(result.unknown,0);assert.doesNotMatch(result.speechText,/[ぁ-ゖァ-ヶ]/u);
 }
 assert.equal(engine.funnyChinese('がっこう').speechText,'嘎，摳烏');
-const unknownJP=engine.funnyChinese('未知漢字🙂');assert.equal(unknownJP.unknown,4);assert.equal(unknownJP.speechText.trim(),'🙂');assert.match(unknownJP.text,/〔漢〕/);
+const kanjiJP=engine.funnyChinese('未知漢字🙂');assert.equal(kanjiJP.unknown,0);assert.equal(kanjiJP.kanji,4);assert.equal(kanjiJP.text,'未知漢字🙂');assert.equal(kanjiJP.speechText,'未知漢字🙂');
+// Unknown kanji stay visible and are read in Mandarin; kana around them still become homophones.
+for(const [input,text,speech] of [['うるさい奴等め','烏嚕撒伊奴等咩','烏嚕撒伊奴等咩'],['早くこちにこい','早庫摳七尼摳伊','早庫摳七尼摳伊'],['駅で待ってる','駅爹待·貼嚕','驛爹待，貼嚕'],['元気？','給恩奇？','給恩奇？']]){
+ const r=engine.funnyChinese(input);assert.equal(r.text,text,input);assert.equal(r.speechText,speech,input);assert.equal(r.unknown,0,input);
+}
 const fallback=vm.createContext({});vm.runInContext(fs.readFileSync(require.resolve('../pronunciation.js'),'utf8'),fallback);
 const unloaded=fallback.NihonPronunciation.forward('中文','kata');assert.equal(unloaded.degraded,true);assert.equal(unloaded.text,'中文');assert.equal(unloaded.unknown,2);
 console.log(`PASS: all ${readings.size} vendor syllables, Traditional/Simplified context, novel sentences, custom precedence, rare-character correction, text safety, Japanese kana/kanji phrases and dictionary-load fallback`);

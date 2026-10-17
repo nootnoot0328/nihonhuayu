@@ -1,4 +1,4 @@
-# 日本華語 · Nihon Huayu 🍡 v1.7
+# 日本華語 · Nihon Huayu 🍡 v1.8
 
 A playful Mandarin → fake-Japanese chat converter, inspired by messages like **什麼樣的便當？ → しぇんまやんで弁当？**.
 
@@ -23,7 +23,7 @@ A playful Mandarin → fake-Japanese chat converter, inspired by messages like *
 
 ### Important limitations
 
-This is a **fun phonetic approximation**, *not* a meaning translator. Mixed-script output is intentionally non-standard. Mandarin readings now come from a broad dictionary; rare unsupported characters remain visible, are marked in the small reading, and can be corrected with custom kana mappings. Japanese kana have broad phonetic coverage; Japanese kanji support is a small starter vocabulary, not a full Japanese reading dictionary. Use kana for unknown Japanese words. 「諧音中文」 imitates Japanese sounds without recovering meaning; 「還原原句」 retains the original ambiguous reverse lookup and saved round trips. No input is uploaded, and local conversion history is saved in browser localStorage.
+This is a **fun phonetic approximation**, *not* a meaning translator. Mixed-script output is intentionally non-standard. Mandarin readings now come from a broad dictionary; rare unsupported characters remain visible, are marked in the small reading, and can be corrected with custom kana mappings. Japanese kana have broad phonetic coverage; Japanese kanji outside a small starter vocabulary are kept as written and read in Mandarin (no Japanese reading dictionary is bundled); type kana for a Japanese-sounding result. 「諧音中文」 imitates Japanese sounds without recovering meaning; 「還原原句」 retains the original ambiguous reverse lookup and saved round trips. No input is uploaded, and local conversion history is saved in browser localStorage.
 
 ## GitHub Pages
 
